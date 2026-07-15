@@ -1,0 +1,118 @@
+<!-- Mapa interactivo del observatorio: callejero OSM + capas de vegetación/pérdida -->
+<!-- Vive en GitHub Pages: usa Leaflet y tiles OSM/CARTO desde internet. -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mapa · Observatorio de Arbolado Urbano de Temuco</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<style>
+  :root {
+    --ground: #f6f7f3; --surface: #ffffff; --ink: #1a1d17; --ink-soft: #4a4f45;
+    --ink-faint: #7c8274; --line: #dce0d5; --accent: #1a7a3c; --loss: #b5391f;
+    --serif: Georgia, "Times New Roman", serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --ground:#12140f; --surface:#1a1d16; --ink:#eef0e8; --ink-soft:#b6bcac;
+      --ink-faint:#828a76; --line:#2e3327; --accent:#6cc48b; --loss:#e2694f; }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; font-family: var(--sans); color: var(--ink); }
+  body { display: flex; flex-direction: column; background: var(--ground); }
+  header { padding: 14px 20px; border-bottom: 1px solid var(--line); background: var(--surface); }
+  header a { color: var(--accent); text-decoration: none; font-size: 13px; }
+  h1 { font-family: var(--serif); font-size: 19px; margin: 4px 0 0; font-weight: 600; }
+  .stage { flex: 1; position: relative; min-height: 0; }
+  #map { position: absolute; inset: 0; }
+  .panel {
+    position: absolute; top: 14px; right: 14px; z-index: 1000; width: 250px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(20,30,15,.14); padding: 14px 15px; font-size: 13.5px;
+  }
+  .panel h2 { font-size: 12px; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--ink-faint); margin: 0 0 10px; font-weight: 600; }
+  .row { display: flex; align-items: center; gap: 9px; padding: 5px 0; cursor: pointer; }
+  .row input { accent-color: var(--accent); width: 15px; height: 15px; }
+  .sw { width: 22px; height: 12px; border-radius: 3px; flex: none; }
+  .divider { height: 1px; background: var(--line); margin: 11px 0; }
+  .yr { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px; }
+  .yr b { font-family: var(--serif); font-size: 20px; color: var(--accent); font-variant-numeric: tabular-nums; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  .hint { font-size: 12px; color: var(--ink-faint); margin: 8px 0 0; line-height: 1.4; }
+  .legend { position: absolute; bottom: 14px; left: 14px; z-index: 1000;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 9px 12px; font-size: 12px; color: var(--ink-soft); box-shadow: 0 4px 14px rgba(20,30,15,.12); }
+  .legend .sw { display: inline-block; vertical-align: middle; margin-right: 5px; }
+  @media (max-width: 640px) { .panel { width: calc(100% - 28px); } }
+</style>
+
+<header>
+  <a href="index.html">← Volver al panel</a>
+  <h1>Mapa interactivo · dónde cambia el verde de Temuco</h1>
+</header>
+<div class="stage">
+  <div id="map"></div>
+
+  <div class="panel">
+    <h2>Capas</h2>
+    <label class="row"><input type="checkbox" id="ck-perdida" checked />
+      <span class="sw" style="background:linear-gradient(90deg,#ff5a36,#7a0000)"></span>
+      Pérdida de verde 2014–2024</label>
+    <label class="row"><input type="checkbox" id="ck-ganancia" />
+      <span class="sw" style="background:linear-gradient(90deg,#78c679,#00441b)"></span>
+      Ganancia de verde 2014–2024</label>
+
+    <div class="divider"></div>
+    <label class="row" style="padding-bottom:2px"><input type="checkbox" id="ck-ndvi" />
+      Vegetación por año</label>
+    <div class="yr"><span style="color:var(--ink-faint)">Año</span><b id="yr-lbl">2024</b></div>
+    <input type="range" id="yr" min="0" max="5" step="1" value="5" />
+    <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+      <span style="color:var(--ink-faint);font-size:12px">Opacidad</span>
+      <input type="range" id="op" min="0.2" max="1" step="0.05" value="0.7" style="flex:1" />
+    </div>
+    <p class="hint">Prendé “Pérdida de verde” y hacé zoom sobre una avenida: los parches
+      rojos marcan dónde cayó la vegetación entre 2014 y 2024.</p>
+  </div>
+
+  <div class="legend">
+    <span class="sw" style="width:14px;height:14px;background:#b5391f;border-radius:3px"></span> Pérdida de verde&nbsp;&nbsp;
+    <span class="sw" style="width:14px;height:14px;background:#1a7a3c;border-radius:3px"></span> Ganancia
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+  const BOUNDS = [[-38.78, -72.68], [-38.68, -72.53]]; // [S,W],[N,E]
+  const map = L.map('map', { minZoom: 11, maxZoom: 18 }).setView([-38.735, -72.605], 13);
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap, &copy; CARTO', maxZoom: 20
+  }).addTo(map);
+
+  const perdida = L.imageOverlay('overlays/perdida_2014_2024.png', BOUNDS, { opacity: 0.9 });
+  const ganancia = L.imageOverlay('overlays/ganancia_2014_2024.png', BOUNDS, { opacity: 0.85 });
+  const anios = [2014, 2016, 2018, 2020, 2022, 2024];
+  const ndvi = L.imageOverlay('overlays/ndvi_2024.png', BOUNDS, { opacity: 0.7 });
+
+  perdida.addTo(map); // capa destacada por defecto
+
+  const $ = id => document.getElementById(id);
+  const toggle = (cb, layer) => $(cb).addEventListener('change', e =>
+    e.target.checked ? layer.addTo(map) : layer.remove());
+  toggle('ck-perdida', perdida);
+  toggle('ck-ganancia', ganancia);
+
+  $('ck-ndvi').addEventListener('change', e => {
+    if (e.target.checked) { ndvi.addTo(map); ndvi.bringToFront();
+      if ($('ck-perdida').checked) perdida.bringToFront(); }
+    else ndvi.remove();
+  });
+  $('yr').addEventListener('input', e => {
+    const a = anios[+e.target.value];
+    $('yr-lbl').textContent = a;
+    ndvi.setUrl('overlays/ndvi_' + a + '.png');
+  });
+  $('op').addEventListener('input', e => ndvi.setOpacity(+e.target.value));
+</script>
