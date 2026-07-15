@@ -7,6 +7,7 @@ from src.gee.aoi_temuco import get_aoi_temuco
 from src.gee.ndvi_series import ndvi_anual_landsat
 from src.gee.lst_series import lst_anual
 from src.gee.change_correlacion import correlacion_ndvi_lst
+from src.gee.dynamicworld import trees_prob_anual
 
 
 def test_aoi_temuco_bounds():
@@ -66,3 +67,16 @@ def test_correlacion_ndvi_lst_negativa():
     """Más vegetación debe implicar superficie más fría (correlación negativa)."""
     r = correlacion_ndvi_lst(2024)
     assert r["correlation"] < -0.3, f"correlación no negativa: {r}"
+
+
+def test_trees_prob_en_rango():
+    """La probabilidad de árbol de Dynamic World debe estar en [0, 1]."""
+    img = trees_prob_anual(2024)
+    stats = img.reduceRegion(
+        reducer=ee.Reducer.minMax(),
+        geometry=get_aoi_temuco(),
+        scale=30,
+        maxPixels=int(1e9),
+    ).getInfo()
+    assert stats["trees_min"] is not None, "sin datos Dynamic World"
+    assert 0.0 <= stats["trees_min"] <= stats["trees_max"] <= 1.0

@@ -25,24 +25,29 @@
   .stage { flex: 1; position: relative; min-height: 0; }
   #map { position: absolute; inset: 0; }
   .panel {
-    position: absolute; top: 14px; right: 14px; z-index: 1000; width: 250px;
+    position: absolute; top: 14px; right: 14px; z-index: 1000; width: 256px;
     background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
-    box-shadow: 0 6px 20px rgba(20,30,15,.14); padding: 14px 15px; font-size: 13.5px;
+    box-shadow: 0 6px 20px rgba(20,30,15,.16); padding: 14px 15px; font-size: 13.5px;
+    max-height: calc(100% - 28px); overflow-y: auto;
   }
   .panel h2 { font-size: 12px; letter-spacing: .1em; text-transform: uppercase;
-    color: var(--ink-faint); margin: 0 0 10px; font-weight: 600; }
+    color: var(--ink-faint); margin: 0 0 8px; font-weight: 600; }
   .row { display: flex; align-items: center; gap: 9px; padding: 5px 0; cursor: pointer; }
-  .row input { accent-color: var(--accent); width: 15px; height: 15px; }
+  .row.sub { padding-left: 24px; font-size: 12.5px; color: var(--ink-soft); }
+  .row input { accent-color: var(--accent); width: 15px; height: 15px; flex: none; }
   .sw { width: 22px; height: 12px; border-radius: 3px; flex: none; }
   .divider { height: 1px; background: var(--line); margin: 11px 0; }
   .yr { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px; }
-  .yr b { font-family: var(--serif); font-size: 20px; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .yr b { font-family: var(--serif); font-size: 22px; color: var(--accent); font-variant-numeric: tabular-nums; }
   input[type=range] { width: 100%; accent-color: var(--accent); }
-  .hint { font-size: 12px; color: var(--ink-faint); margin: 8px 0 0; line-height: 1.4; }
+  .hint { font-size: 12px; color: var(--ink-faint); margin: 9px 0 0; line-height: 1.4; }
   .legend { position: absolute; bottom: 14px; left: 14px; z-index: 1000;
     background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
     padding: 9px 12px; font-size: 12px; color: var(--ink-soft); box-shadow: 0 4px 14px rgba(20,30,15,.12); }
-  .legend .sw { display: inline-block; vertical-align: middle; margin-right: 5px; }
+  .legend .sw { display: inline-block; width: 13px; height: 13px; border-radius: 3px; vertical-align: middle; margin-right: 4px; }
+  .legend .grp { display: none; }
+  .legend .grp.on { display: block; }
+  .legend .grp + .grp.on { margin-top: 6px; }
   @media (max-width: 640px) { .panel { width: calc(100% - 28px); } }
 </style>
 
@@ -57,27 +62,40 @@
     <h2>Capas</h2>
     <label class="row"><input type="checkbox" id="ck-perdida" checked />
       <span class="sw" style="background:linear-gradient(90deg,#ff5a36,#7a0000)"></span>
-      Pérdida de verde 2014–2024</label>
+      Pérdida de verde</label>
+    <label class="row sub"><input type="checkbox" id="ck-arboles" />
+      Solo donde había árboles</label>
     <label class="row"><input type="checkbox" id="ck-ganancia" />
       <span class="sw" style="background:linear-gradient(90deg,#78c679,#00441b)"></span>
-      Ganancia de verde 2014–2024</label>
+      Ganancia de verde</label>
+    <label class="row"><input type="checkbox" id="ck-tipo" />
+      <span class="sw" style="background:linear-gradient(90deg,#1a6b34,#cfe08a,#e0a458)"></span>
+      Tipo de vegetación</label>
+    <label class="row"><input type="checkbox" id="ck-ndvi" />
+      Vegetación (NDVI) por año</label>
 
     <div class="divider"></div>
-    <label class="row" style="padding-bottom:2px"><input type="checkbox" id="ck-ndvi" />
-      Vegetación por año</label>
     <div class="yr"><span style="color:var(--ink-faint)">Año</span><b id="yr-lbl">2024</b></div>
     <input type="range" id="yr" min="0" max="5" step="1" value="5" />
     <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
-      <span style="color:var(--ink-faint);font-size:12px">Opacidad</span>
+      <span style="color:var(--ink-faint);font-size:12px">Opacidad NDVI</span>
       <input type="range" id="op" min="0.2" max="1" step="0.05" value="0.7" style="flex:1" />
     </div>
-    <p class="hint">Prendé “Pérdida de verde” y hacé zoom sobre una avenida: los parches
-      rojos marcan dónde cayó la vegetación entre 2014 y 2024.</p>
+    <p class="hint">Mové el año: la pérdida de verde se acumula desde 2014. Prendé
+      “Solo donde había árboles” para separar la pérdida de arbolado de la de pasto.</p>
   </div>
 
   <div class="legend">
-    <span class="sw" style="width:14px;height:14px;background:#b5391f;border-radius:3px"></span> Pérdida de verde&nbsp;&nbsp;
-    <span class="sw" style="width:14px;height:14px;background:#1a7a3c;border-radius:3px"></span> Ganancia
+    <div class="grp on" id="lg-perdida">
+      <span class="sw" style="background:#b5391f"></span> Pérdida de verde&nbsp;&nbsp;
+      <span class="sw" style="background:#1a7a3c"></span> Ganancia
+    </div>
+    <div class="grp" id="lg-tipo">
+      <span class="sw" style="background:#1a6b34"></span> Árboles&nbsp;
+      <span class="sw" style="background:#cfe08a"></span> Pasto&nbsp;
+      <span class="sw" style="background:#7a9e3c"></span> Arbustos&nbsp;
+      <span class="sw" style="background:#e0a458"></span> Cultivos
+    </div>
   </div>
 </div>
 
@@ -85,34 +103,54 @@
   integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
   const BOUNDS = [[-38.78, -72.68], [-38.68, -72.53]]; // [S,W],[N,E]
+  const ANIOS = [2014, 2016, 2018, 2020, 2022, 2024];
   const map = L.map('map', { minZoom: 11, maxZoom: 18 }).setView([-38.735, -72.605], 13);
 
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     attribution: '&copy; OpenStreetMap, &copy; CARTO', maxZoom: 20
   }).addTo(map);
 
-  const perdida = L.imageOverlay('overlays/perdida_2014_2024.png', BOUNDS, { opacity: 0.9 });
+  const perdida = L.imageOverlay('', BOUNDS, { opacity: 0.9 });
   const ganancia = L.imageOverlay('overlays/ganancia_2014_2024.png', BOUNDS, { opacity: 0.85 });
-  const anios = [2014, 2016, 2018, 2020, 2022, 2024];
+  const tipo = L.imageOverlay('overlays/tipo_veg_2024.png', BOUNDS, { opacity: 0.75 });
   const ndvi = L.imageOverlay('overlays/ndvi_2024.png', BOUNDS, { opacity: 0.7 });
 
-  perdida.addTo(map); // capa destacada por defecto
-
   const $ = id => document.getElementById(id);
-  const toggle = (cb, layer) => $(cb).addEventListener('change', e =>
-    e.target.checked ? layer.addTo(map) : layer.remove());
-  toggle('ck-perdida', perdida);
-  toggle('ck-ganancia', ganancia);
 
-  $('ck-ndvi').addEventListener('change', e => {
-    if (e.target.checked) { ndvi.addTo(map); ndvi.bringToFront();
-      if ($('ck-perdida').checked) perdida.bringToFront(); }
-    else ndvi.remove();
+  function anioSel() { return ANIOS[+$('yr').value]; }
+
+  function updatePerdida() {
+    const a = anioSel();
+    if (!$('ck-perdida').checked || a === 2014) { perdida.remove(); return; }
+    const pref = $('ck-arboles').checked ? 'overlays/arboles_perdida_' : 'overlays/perdida_2014_';
+    perdida.setUrl(pref + a + '.png').addTo(map).bringToFront();
+  }
+  function updateNdvi() {
+    if (!$('ck-ndvi').checked) { ndvi.remove(); return; }
+    ndvi.setUrl('overlays/ndvi_' + anioSel() + '.png').addTo(map);
+    ndvi.bringToBack();  // el callejero queda tapado a propósito? no: detrás de overlays
+    tipo.bringToFront(); if ($('ck-perdida').checked) perdida.bringToFront();
+  }
+
+  // Capas simples
+  $('ck-ganancia').addEventListener('change', e =>
+    e.target.checked ? ganancia.addTo(map) : ganancia.remove());
+  $('ck-tipo').addEventListener('change', e => {
+    e.target.checked ? tipo.addTo(map) : tipo.remove();
+    $('lg-tipo').classList.toggle('on', e.target.checked);
+    if (e.target.checked && $('ck-perdida').checked) perdida.bringToFront();
   });
-  $('yr').addEventListener('input', e => {
-    const a = anios[+e.target.value];
-    $('yr-lbl').textContent = a;
-    ndvi.setUrl('overlays/ndvi_' + a + '.png');
+
+  // Capas dinámicas por año
+  $('ck-perdida').addEventListener('change', () => { updatePerdida();
+    $('lg-perdida').classList.toggle('on', $('ck-perdida').checked); });
+  $('ck-arboles').addEventListener('change', updatePerdida);
+  $('ck-ndvi').addEventListener('change', updateNdvi);
+  $('yr').addEventListener('input', () => {
+    $('yr-lbl').textContent = anioSel();
+    updatePerdida(); updateNdvi();
   });
   $('op').addEventListener('input', e => ndvi.setOpacity(+e.target.value));
+
+  updatePerdida(); // arranca en 2024 con pérdida acumulada
 </script>
