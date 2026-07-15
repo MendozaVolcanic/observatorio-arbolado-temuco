@@ -1,0 +1,25 @@
+# Credenciales y config local
+.env
+
+# Config local de Claude Code
+.claude/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+
+# Datos pesados y derivados (los raw NO se versionan)
+datos/*.tif
+datos/*.tiff
+*.zip
+
+# Vendored code externo (se clona, no se versiona)
+vendor/
+
+# Notebooks: checkpoints
+.ipynb_checkpoints/
+
+# Audio original (pesado)
+*.ogg
