@@ -26,3 +26,4 @@ vendor/
 
 # PDFs de bibliografia (copyright de terceros + peso) — no versionar
 bibliografia/pdfs/
+datos/loteos_temuco.geojson
