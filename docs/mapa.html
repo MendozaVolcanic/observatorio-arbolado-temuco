@@ -111,7 +111,7 @@
   integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
   const BOUNDS = [[-38.78, -72.68], [-38.68, -72.53]];
-  const ANIOS = [2005, 2010, 2015, 2020, 2024];
+  let ANIOS = [2024]; // se reemplaza con overlays/anios.json (serie anual)
   const map = L.map('map', { minZoom: 11, maxZoom: 18 }).setView([-38.735, -72.605], 13);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     attribution: '&copy; OpenStreetMap, &copy; CARTO', maxZoom: 20 }).addTo(map);
@@ -170,5 +170,13 @@
     rgb.setOpacity(+e.target.value); ndvi.setOpacity(+e.target.value * 0.82);
   });
 
-  updatePerdida();
+  // Carga la serie anual y arma el slider año por año
+  fetch('overlays/anios.json').then(r => r.json()).then(a => {
+    ANIOS = a;
+    const yr = $('yr');
+    yr.max = a.length - 1;
+    yr.value = a.length - 1;
+    $('yr-lbl').textContent = ANIOS[+yr.value];
+    updatePerdida();
+  }).catch(() => updatePerdida());
 </script>
