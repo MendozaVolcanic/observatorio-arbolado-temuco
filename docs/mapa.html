@@ -1,4 +1,4 @@
-<!-- Mapa interactivo del observatorio: callejero OSM + capas de vegetación/pérdida -->
+<!-- Mapa interactivo del observatorio: callejero OSM + capas satelitales -->
 <!-- Vive en GitHub Pages: usa Leaflet y tiles OSM/CARTO desde internet. -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -7,48 +7,45 @@
   integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 <style>
   :root {
-    --ground: #f6f7f3; --surface: #ffffff; --ink: #1a1d17; --ink-soft: #4a4f45;
-    --ink-faint: #7c8274; --line: #dce0d5; --accent: #1a7a3c; --loss: #b5391f;
-    --serif: Georgia, "Times New Roman", serif;
-    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --ground:#f6f7f3; --surface:#fff; --ink:#1a1d17; --ink-soft:#4a4f45;
+    --ink-faint:#7c8274; --line:#dce0d5; --accent:#1a7a3c;
+    --serif:Georgia,"Times New Roman",serif; --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   }
   @media (prefers-color-scheme: dark) {
     :root { --ground:#12140f; --surface:#1a1d16; --ink:#eef0e8; --ink-soft:#b6bcac;
-      --ink-faint:#828a76; --line:#2e3327; --accent:#6cc48b; --loss:#e2694f; }
+      --ink-faint:#828a76; --line:#2e3327; --accent:#6cc48b; }
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; height: 100%; font-family: var(--sans); color: var(--ink); }
-  body { display: flex; flex-direction: column; background: var(--ground); }
-  header { padding: 14px 20px; border-bottom: 1px solid var(--line); background: var(--surface); }
-  header a { color: var(--accent); text-decoration: none; font-size: 13px; }
-  h1 { font-family: var(--serif); font-size: 19px; margin: 4px 0 0; font-weight: 600; }
-  .stage { flex: 1; position: relative; min-height: 0; }
-  #map { position: absolute; inset: 0; }
-  .panel {
-    position: absolute; top: 14px; right: 14px; z-index: 1000; width: 256px;
-    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
-    box-shadow: 0 6px 20px rgba(20,30,15,.16); padding: 14px 15px; font-size: 13.5px;
-    max-height: calc(100% - 28px); overflow-y: auto;
-  }
-  .panel h2 { font-size: 12px; letter-spacing: .1em; text-transform: uppercase;
-    color: var(--ink-faint); margin: 0 0 8px; font-weight: 600; }
-  .row { display: flex; align-items: center; gap: 9px; padding: 5px 0; cursor: pointer; }
-  .row.sub { padding-left: 24px; font-size: 12.5px; color: var(--ink-soft); }
-  .row input { accent-color: var(--accent); width: 15px; height: 15px; flex: none; }
-  .sw { width: 22px; height: 12px; border-radius: 3px; flex: none; }
-  .divider { height: 1px; background: var(--line); margin: 11px 0; }
-  .yr { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px; }
-  .yr b { font-family: var(--serif); font-size: 22px; color: var(--accent); font-variant-numeric: tabular-nums; }
-  input[type=range] { width: 100%; accent-color: var(--accent); }
-  .hint { font-size: 12px; color: var(--ink-faint); margin: 9px 0 0; line-height: 1.4; }
-  .legend { position: absolute; bottom: 14px; left: 14px; z-index: 1000;
-    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
-    padding: 9px 12px; font-size: 12px; color: var(--ink-soft); box-shadow: 0 4px 14px rgba(20,30,15,.12); }
-  .legend .sw { display: inline-block; width: 13px; height: 13px; border-radius: 3px; vertical-align: middle; margin-right: 4px; }
-  .legend .grp { display: none; }
-  .legend .grp.on { display: block; }
-  .legend .grp + .grp.on { margin-top: 6px; }
-  @media (max-width: 640px) { .panel { width: calc(100% - 28px); } }
+  html, body { margin:0; height:100%; font-family:var(--sans); color:var(--ink); }
+  body { display:flex; flex-direction:column; background:var(--ground); }
+  header { padding:14px 20px; border-bottom:1px solid var(--line); background:var(--surface); }
+  header a { color:var(--accent); text-decoration:none; font-size:13px; }
+  h1 { font-family:var(--serif); font-size:19px; margin:4px 0 0; font-weight:600; }
+  .stage { flex:1; position:relative; min-height:0; }
+  #map { position:absolute; inset:0; }
+  .panel { position:absolute; top:14px; right:14px; z-index:1000; width:262px;
+    background:var(--surface); border:1px solid var(--line); border-radius:12px;
+    box-shadow:0 6px 20px rgba(20,30,15,.16); padding:14px 15px; font-size:13.5px;
+    max-height:calc(100% - 28px); overflow-y:auto; }
+  .panel h2 { font-size:12px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--ink-faint); margin:0 0 8px; font-weight:600; }
+  .row { display:flex; align-items:center; gap:9px; padding:5px 0; cursor:pointer; }
+  .row.sub { padding-left:24px; font-size:12.5px; color:var(--ink-soft); }
+  .row input { accent-color:var(--accent); width:15px; height:15px; flex:none; }
+  .sw { width:22px; height:12px; border-radius:3px; flex:none; }
+  .divider { height:1px; background:var(--line); margin:11px 0; }
+  .yr { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:6px; }
+  .yr b { font-family:var(--serif); font-size:22px; color:var(--accent); font-variant-numeric:tabular-nums; }
+  input[type=range] { width:100%; accent-color:var(--accent); }
+  .hint { font-size:12px; color:var(--ink-faint); margin:9px 0 0; line-height:1.4; }
+  .legend { position:absolute; bottom:14px; left:14px; z-index:1000; background:var(--surface);
+    border:1px solid var(--line); border-radius:10px; padding:9px 12px; font-size:12px;
+    color:var(--ink-soft); box-shadow:0 4px 14px rgba(20,30,15,.12); max-width:60%; }
+  .legend .sw { display:inline-block; width:13px; height:13px; border-radius:3px; vertical-align:middle; margin-right:4px; }
+  .legend .grp { display:none; }
+  .legend .grp.on { display:block; }
+  .legend .grp + .grp.on { margin-top:6px; }
+  @media (max-width:640px) { .panel { width:calc(100% - 28px); } }
 </style>
 
 <header>
@@ -60,6 +57,9 @@
 
   <div class="panel">
     <h2>Capas</h2>
+    <label class="row"><input type="checkbox" id="ck-rgb" />
+      <span class="sw" style="background:linear-gradient(90deg,#5a6b4a,#9aa17f)"></span>
+      Color real (satélite)</label>
     <label class="row"><input type="checkbox" id="ck-perdida" checked />
       <span class="sw" style="background:linear-gradient(90deg,#ff5a36,#7a0000)"></span>
       Pérdida de verde</label>
@@ -71,86 +71,104 @@
     <label class="row"><input type="checkbox" id="ck-tipo" />
       <span class="sw" style="background:linear-gradient(90deg,#1a6b34,#cfe08a,#e0a458)"></span>
       Tipo de vegetación</label>
+    <label class="row"><input type="checkbox" id="ck-canopy" />
+      <span class="sw" style="background:linear-gradient(90deg,#f7fcb9,#004529)"></span>
+      Altura de árboles (dosel)</label>
     <label class="row"><input type="checkbox" id="ck-ndvi" />
       Vegetación (NDVI) por año</label>
 
     <div class="divider"></div>
     <div class="yr"><span style="color:var(--ink-faint)">Año</span><b id="yr-lbl">2024</b></div>
-    <input type="range" id="yr" min="0" max="5" step="1" value="5" />
+    <input type="range" id="yr" min="0" max="4" step="1" value="4" />
     <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
-      <span style="color:var(--ink-faint);font-size:12px">Opacidad NDVI</span>
-      <input type="range" id="op" min="0.2" max="1" step="0.05" value="0.7" style="flex:1" />
+      <span style="color:var(--ink-faint);font-size:12px">Opacidad</span>
+      <input type="range" id="op" min="0.2" max="1" step="0.05" value="0.85" style="flex:1" />
     </div>
-    <p class="hint">Mové el año: la pérdida de verde se acumula desde 2014. Prendé
-      “Solo donde había árboles” para separar la pérdida de arbolado de la de pasto.</p>
+    <p class="hint">Mové el año (2005–2024): color real, NDVI y pérdida acumulada
+      cambian. La pérdida se suma desde 2005. “Solo donde había árboles” separa la
+      pérdida de arbolado de la de pasto.</p>
   </div>
 
   <div class="legend">
     <div class="grp on" id="lg-perdida">
       <span class="sw" style="background:#b5391f"></span> Pérdida de verde&nbsp;&nbsp;
-      <span class="sw" style="background:#1a7a3c"></span> Ganancia
-    </div>
+      <span class="sw" style="background:#1a7a3c"></span> Ganancia</div>
     <div class="grp" id="lg-tipo">
       <span class="sw" style="background:#1a6b34"></span> Árboles&nbsp;
       <span class="sw" style="background:#cfe08a"></span> Pasto&nbsp;
       <span class="sw" style="background:#7a9e3c"></span> Arbustos&nbsp;
-      <span class="sw" style="background:#e0a458"></span> Cultivos
-    </div>
+      <span class="sw" style="background:#e0a458"></span> Cultivos</div>
+    <div class="grp" id="lg-canopy">
+      <span class="sw" style="background:#f7fcb9"></span> Bajo&nbsp;
+      <span class="sw" style="background:#41ab5d"></span> Medio&nbsp;
+      <span class="sw" style="background:#004529"></span> Alto (dosel, ~1–25 m)</div>
+    <div class="grp" id="lg-rgb" style="font-size:11.5px">
+      Color real: Landsat 30 m (2005–2015) · Sentinel-2 10 m (2020–2024)</div>
   </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
   integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
-  const BOUNDS = [[-38.78, -72.68], [-38.68, -72.53]]; // [S,W],[N,E]
-  const ANIOS = [2014, 2016, 2018, 2020, 2022, 2024];
+  const BOUNDS = [[-38.78, -72.68], [-38.68, -72.53]];
+  const ANIOS = [2005, 2010, 2015, 2020, 2024];
   const map = L.map('map', { minZoom: 11, maxZoom: 18 }).setView([-38.735, -72.605], 13);
-
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; OpenStreetMap, &copy; CARTO', maxZoom: 20
-  }).addTo(map);
+    attribution: '&copy; OpenStreetMap, &copy; CARTO', maxZoom: 20 }).addTo(map);
 
+  const rgb = L.imageOverlay('overlays/rgb_2024.png', BOUNDS, { opacity: 1 });
   const perdida = L.imageOverlay('', BOUNDS, { opacity: 0.9 });
-  const ganancia = L.imageOverlay('overlays/ganancia_2014_2024.png', BOUNDS, { opacity: 0.85 });
+  const ganancia = L.imageOverlay('overlays/ganancia_2005_2024.png', BOUNDS, { opacity: 0.85 });
   const tipo = L.imageOverlay('overlays/tipo_veg_2024.png', BOUNDS, { opacity: 0.75 });
+  const canopy = L.imageOverlay('overlays/canopy_height.png', BOUNDS, { opacity: 0.8 });
   const ndvi = L.imageOverlay('overlays/ndvi_2024.png', BOUNDS, { opacity: 0.7 });
 
   const $ = id => document.getElementById(id);
+  const anioSel = () => ANIOS[+$('yr').value];
 
-  function anioSel() { return ANIOS[+$('yr').value]; }
-
+  // orden de apilado: rgb (fondo) < canopy/tipo/ndvi < ganancia < perdida (arriba)
+  function reordenar() {
+    if ($('ck-rgb').checked) rgb.bringToBack();
+    [canopy, tipo, ndvi, ganancia].forEach(l => { if (map.hasLayer(l)) l.bringToFront(); });
+    if ($('ck-perdida').checked && anioSel() !== 2005) perdida.bringToFront();
+  }
   function updatePerdida() {
     const a = anioSel();
-    if (!$('ck-perdida').checked || a === 2014) { perdida.remove(); return; }
-    const pref = $('ck-arboles').checked ? 'overlays/arboles_perdida_' : 'overlays/perdida_2014_';
-    perdida.setUrl(pref + a + '.png').addTo(map).bringToFront();
+    if (!$('ck-perdida').checked || a === 2005) { perdida.remove(); return; }
+    const pref = $('ck-arboles').checked ? 'overlays/arboles_perdida_' : 'overlays/perdida_2005_';
+    perdida.setUrl(pref + a + '.png').addTo(map);
+    reordenar();
+  }
+  function updateRgb() {
+    if (!$('ck-rgb').checked) { rgb.remove(); return; }
+    rgb.setUrl('overlays/rgb_' + anioSel() + '.png').addTo(map); reordenar();
   }
   function updateNdvi() {
     if (!$('ck-ndvi').checked) { ndvi.remove(); return; }
-    ndvi.setUrl('overlays/ndvi_' + anioSel() + '.png').addTo(map);
-    ndvi.bringToBack();  // el callejero queda tapado a propósito? no: detrás de overlays
-    tipo.bringToFront(); if ($('ck-perdida').checked) perdida.bringToFront();
+    ndvi.setUrl('overlays/ndvi_' + anioSel() + '.png').addTo(map); reordenar();
   }
-
-  // Capas simples
-  $('ck-ganancia').addEventListener('change', e =>
-    e.target.checked ? ganancia.addTo(map) : ganancia.remove());
-  $('ck-tipo').addEventListener('change', e => {
-    e.target.checked ? tipo.addTo(map) : tipo.remove();
-    $('lg-tipo').classList.toggle('on', e.target.checked);
-    if (e.target.checked && $('ck-perdida').checked) perdida.bringToFront();
+  const simple = (ck, layer, lg) => $(ck).addEventListener('change', e => {
+    e.target.checked ? layer.addTo(map) : layer.remove();
+    if (lg) $(lg).classList.toggle('on', e.target.checked);
+    reordenar();
   });
+  simple('ck-ganancia', ganancia, null);
+  simple('ck-tipo', tipo, 'lg-tipo');
+  simple('ck-canopy', canopy, 'lg-canopy');
 
-  // Capas dinámicas por año
+  $('ck-rgb').addEventListener('change', () => { updateRgb();
+    $('lg-rgb').classList.toggle('on', $('ck-rgb').checked); });
   $('ck-perdida').addEventListener('change', () => { updatePerdida();
     $('lg-perdida').classList.toggle('on', $('ck-perdida').checked); });
   $('ck-arboles').addEventListener('change', updatePerdida);
   $('ck-ndvi').addEventListener('change', updateNdvi);
   $('yr').addEventListener('input', () => {
     $('yr-lbl').textContent = anioSel();
-    updatePerdida(); updateNdvi();
+    updatePerdida(); updateRgb(); updateNdvi();
   });
-  $('op').addEventListener('input', e => ndvi.setOpacity(+e.target.value));
+  $('op').addEventListener('input', e => {
+    rgb.setOpacity(+e.target.value); ndvi.setOpacity(+e.target.value * 0.82);
+  });
 
-  updatePerdida(); // arranca en 2024 con pérdida acumulada
+  updatePerdida();
 </script>

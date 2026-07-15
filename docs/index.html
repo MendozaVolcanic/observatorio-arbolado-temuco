@@ -128,11 +128,12 @@
 <section>
   <div class="wrap">
     <div class="finding">
-      <div class="stat">9,2%<small>del área urbana perdió verde<br>de forma marcada, 2014 → 2024</small></div>
-      <p>Medido con imágenes Landsat 8 (NASA/USGS): la fracción del área urbana de Temuco
-        donde el índice de vegetación (NDVI) cayó de manera clara en diez años. Es una
-        primera señal de <b>dónde mirar</b>, no un conteo de árboles — eso viene en la
-        siguiente etapa.</p>
+      <div class="stat">2,9%<small>del arbolado urbano perdió cobertura<br>entre 2005 y 2024</small></div>
+      <p>En veinte años, un <b>8,4%</b> del área urbana perdió verde — pero la mayor parte
+        era pasto y cultivos (verde que va y viene con las estaciones). Filtrando solo lo
+        que era <b>árbol</b> (con Google Dynamic World), la pérdida de arbolado propiamente
+        tal baja a <b>2,9%</b>. Distinguir árbol de pasto evita inflar la cifra — y es una
+        señal de <b>dónde mirar</b>, no un conteo de árboles todavía.</p>
     </div>
   </div>
 </section>
@@ -140,13 +141,13 @@
 <section>
   <div class="wrap">
     <h2>El mapa del cambio</h2>
-    <p class="sub">Diferencia de NDVI entre 2014 y 2024 sobre el área urbana. Comparado
-      con el mismo satélite y la misma estación (verano), para que el cambio no sea un
-      artefacto técnico.</p>
+    <p class="sub">Diferencia de NDVI entre 2005 y 2024 sobre el área urbana. Para que el
+      cambio no sea un artefacto técnico, el NDVI de Landsat 5 (2005) se armonizó a la
+      escala de Landsat 8 (Roy et al. 2016) y se compara la misma estación (verano).</p>
     <div class="maps one">
       <figure>
-        <img src="img/delta_ndvi_urbano.png" alt="Mapa de cambio de vegetación de Temuco 2014-2024" />
-        <figcaption><b>Cambio de vegetación 2014 → 2024.</b> Rojo = pérdida de verde ·
+        <img src="img/delta_ndvi_urbano.png" alt="Mapa de cambio de vegetación de Temuco 2005-2024" />
+        <figcaption><b>Cambio de vegetación 2005 → 2024.</b> Rojo = pérdida de verde ·
           Verde = ganancia. La mancha urbana (centro) muestra pérdidas dispersas manzana
           a manzana; los grandes parches rojos rurales suelen ser tala de plantaciones
           forestales (ruido para el arbolado urbano).</figcaption>
@@ -177,8 +178,8 @@
       más densa la vegetación.</p>
     <div class="maps">
       <figure>
-        <img src="img/ndvi_2013_urbano.png" alt="NDVI de Temuco urbano en 2014" />
-        <figcaption><b>2014.</b> Verano austral, Landsat 8.</figcaption>
+        <img src="img/ndvi_2005_urbano.png" alt="NDVI de Temuco urbano en 2005" />
+        <figcaption><b>2005.</b> Verano austral, Landsat 5 (armonizado).</figcaption>
       </figure>
       <figure>
         <img src="img/ndvi_2024_urbano.png" alt="NDVI de Temuco urbano en 2024" />
@@ -249,10 +250,53 @@
   </div>
 </section>
 
+<section>
+  <div class="wrap">
+    <h2>Cómo se hizo · fuentes de cada dato</h2>
+    <p class="sub">Todo con datos abiertos y gratuitos, procesados en Google Earth Engine.
+      El código es público en el repositorio del proyecto.</p>
+    <div class="notes">
+      <div class="note">
+        <h3>Vegetación (NDVI) 2005–2024</h3>
+        <p>Landsat 5 y 8 (NASA/USGS). Composición de verano austral (dic–feb). El NDVI de
+          Landsat 5 se armonizó a la escala de Landsat 8 (Roy et al. 2016) para poder
+          comparar a lo largo de 20 años.</p>
+      </div>
+      <div class="note">
+        <h3>Color real</h3>
+        <p>Sentinel-2 (Copernicus/ESA, 10 m) para 2020–2024; Landsat (30 m) para
+          2005–2015. Por eso las imágenes recientes se ven más nítidas.</p>
+      </div>
+      <div class="note">
+        <h3>Temperatura de superficie</h3>
+        <p>Producto oficial de temperatura de superficie de Landsat Collection 2
+          (USGS), ya calibrado. Composición de verano.</p>
+      </div>
+      <div class="note">
+        <h3>Tipo de vegetación (árbol / pasto)</h3>
+        <p>Google Dynamic World (10 m): clasifica cada píxel en árboles, pasto,
+          arbustos o cultivos. Con él separamos la pérdida de arbolado de la de pasto.</p>
+      </div>
+      <div class="note">
+        <h3>Altura del dosel</h3>
+        <p>Mapa global de altura de copa de Meta/WRI (~1 m), derivado de imágenes de alta
+          resolución con IA. Un solo período (~2020): distingue árbol por su altura.</p>
+      </div>
+      <div class="note">
+        <h3>Límite de la comuna</h3>
+        <p>División Político-Administrativa oficial de Chile (2023). Superficie
+          446–467 km². El análisis usa un recorte del área urbana.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <footer>
   <div class="wrap">
-    Datos: Landsat 8 (NASA / USGS) vía Google Earth Engine · Límite comunal oficial
-    (DPA Chile 2023). Proyecto ciudadano de arbolado urbano — en colaboración con la
-    ONG Verde Urbano. Prototipo con fines de análisis; las cifras son preliminares.
+    Datos: Landsat (NASA/USGS), Sentinel-2 (Copernicus/ESA), Dynamic World (Google),
+    Canopy Height (Meta/WRI), límite comunal (DPA Chile 2023) — procesados en Google
+    Earth Engine. Proyecto ciudadano de arbolado urbano, en colaboración con la ONG
+    Verde Urbano. Prototipo con fines de análisis; las cifras son preliminares y el
+    método es reproducible desde el código del repositorio.
   </div>
 </footer>

@@ -24,15 +24,23 @@ def _scale_sr(img: "ee.Image", bands: list) -> "ee.Image":
     return img.select(bands).multiply(0.0000275).add(-0.2)
 
 
+# Armonización de sensores (Roy et al. 2016, Remote Sensing of Environment):
+# ajusta el NDVI de Landsat 5/7 (TM/ETM+) a la escala de Landsat 8 (OLI), para
+# que la serie 2005-2024 sea comparable pese al cambio de sensor.
+_ROY_SLOPE, _ROY_INTERCEPT = 0.9723, 0.0235
+
+
 def _rango_verano(anio: int):
     """Verano austral: 1-dic del año previo a 1-mar del año dado."""
     return f"{anio - 1}-12-01", f"{anio}-03-01"
 
 
-def ndvi_anual_landsat(anio: int, temporada: str = "verano") -> "ee.Image":
+def ndvi_anual_landsat(anio: int, temporada: str = "verano",
+                       armonizar: bool = True) -> "ee.Image":
     """NDVI compuesto (mediana) sobre Temuco para un año.
 
     temporada: 'verano' (dic-feb, default) o 'anual' (todo el año).
+    armonizar: si True, ajusta L5 a escala L8 (Roy 2016) para comparabilidad.
     Devuelve ee.Image con banda 'NDVI'.
     """
     init_ee()
@@ -59,4 +67,7 @@ def ndvi_anual_landsat(anio: int, temporada: str = "verano") -> "ee.Image":
         sr = _scale_sr(img, [nir, red])
         return sr.normalizedDifference([nir, red]).rename("NDVI")
 
-    return col.map(_ndvi).median().clip(aoi).rename("NDVI")
+    ndvi = col.map(_ndvi).median().clip(aoi)
+    if armonizar and anio <= 2012:  # L5 (TM) -> escala L8 (OLI)
+        ndvi = ndvi.multiply(_ROY_SLOPE).add(_ROY_INTERCEPT)
+    return ndvi.rename("NDVI")
