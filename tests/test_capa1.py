@@ -4,6 +4,7 @@ Requieren conexión a Earth Engine (cuenta autenticada + GEE_PROJECT en .env).
 """
 import ee
 from src.gee.aoi_temuco import get_aoi_temuco
+from src.gee.ndvi_series import ndvi_anual_landsat
 
 
 def test_aoi_temuco_bounds():
@@ -19,3 +20,28 @@ def test_aoi_temuco_superficie():
     aoi = get_aoi_temuco()
     area_km2 = aoi.area(maxError=10).divide(1e6).getInfo()
     assert 400 < area_km2 < 520, f"superficie inesperada: {area_km2:.1f} km²"
+
+
+def test_ndvi_en_rango_fisico():
+    """El NDVI debe estar en el rango físico [-1, 1]."""
+    img = ndvi_anual_landsat(2020)  # ee.Image, banda 'NDVI'
+    stats = img.reduceRegion(
+        reducer=ee.Reducer.minMax(),
+        geometry=get_aoi_temuco(),
+        scale=30,
+        maxPixels=int(1e9),
+    ).getInfo()
+    assert stats["NDVI_min"] is not None, "sin datos NDVI (¿todo enmascarado?)"
+    assert -1.0 <= stats["NDVI_min"] <= stats["NDVI_max"] <= 1.0
+
+
+def test_ndvi_vegetacion_positiva():
+    """La mediana de NDVI en Temuco (ciudad arbolada) debe ser claramente positiva."""
+    img = ndvi_anual_landsat(2020)
+    med = img.reduceRegion(
+        reducer=ee.Reducer.median(),
+        geometry=get_aoi_temuco(),
+        scale=30,
+        maxPixels=int(1e9),
+    ).getInfo()["NDVI"]
+    assert med > 0.2, f"NDVI mediano inesperadamente bajo: {med}"
