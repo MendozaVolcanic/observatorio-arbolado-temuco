@@ -14,6 +14,8 @@ import ee
 from src.gee._init import init_ee
 from src.gee.aoi_temuco import get_aoi_temuco, TEMUCO_BBOX
 from src.gee.ndvi_series import ndvi_anual_landsat
+from src.gee.lst_series import lst_anual
+from src.gee.change_correlacion import correlacion_ndvi_lst
 from src.gee.export import thumb_png, con_borde
 
 init_ee()
@@ -51,8 +53,20 @@ thumb_png(
     aoi, {}, "docs/img/ndvi_2024_comuna.png",
 )
 
+# 5) Temperatura de superficie (LST) verano 2024, área urbana
+PAL_LST = ["#2166ac", "#67a9cf", "#fddbc7", "#ef8a62", "#b2182b"]  # frío→caliente
+lst_act = lst_anual(ANIO_ACT)
+thumb_png(
+    con_borde(lst_act.visualize(min=18, max=42, palette=PAL_LST), aoi),
+    urbano, {}, "docs/img/lst_2024_urbano.png",
+)
+
 # Cifra: fracción de píxeles urbanos con pérdida marcada (ΔNDVI < -0.1)
 perdida = delta.lt(-0.1)
 frac = perdida.reduceRegion(ee.Reducer.mean(), urbano, 30, maxPixels=int(1e9)).getInfo()["dNDVI"]
 print(f"Fracción área urbana con pérdida NDVI marcada (<-0.1) {ANIO_BASE}->{ANIO_ACT}: {frac*100:.1f}%")
+
+# Cifra: correlación vegetación-temperatura (área urbana)
+corr = correlacion_ndvi_lst(ANIO_ACT, urbano)["correlation"]
+print(f"Correlación NDVI-LST área urbana {ANIO_ACT}: {corr:.2f}")
 print("Mapas generados en docs/img/")
